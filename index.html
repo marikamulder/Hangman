@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <title>Hangman Game</title>
+</head>
+<body>
+    <div class="game-box">
+    <div class="game-screen">
+        <div class="gallows">
+            <div class="hanged-manflex">
+                <div class="hanged-man hanged-manhead hanged-manbody hanged-manleft-arm hanged-manright-arm hanged-manleft-leg hanged-manright-leg"></div>
+            </div>
+            <div class="entered-letters">
+                <div class="entered-a">A</div>
+                <div class="entered-b">B</div>
+                <div class="entered-c">C</div>
+                <div class="entered-d">D</div>
+                <div class="entered-e">E</div>
+                <div class="entered-f">F</div>
+                <div class="entered-g">G</div>
+                <div class="entered-h">H</div>
+                <div class="entered-i">I</div>
+                <div class="entered-j">J</div>
+                <div class="entered-k">K</div>
+                <div class="entered-l">L</div>
+                <div class="entered-m">M</div>
+                <div class="entered-n">N</div>
+                <div class="entered-o">O</div>
+                <div class="entered-p">P</div>
+                <div class="entered-q">Q</div>
+                <div class="entered-r">R</div>
+                <div class="entered-s">S</div>
+                <div class="entered-t">T</div>
+                <div class="entered-u">U</div>
+                <div class="entered-v">V</div>
+                <div class="entered-w">W</div>
+                <div class="entered-x">X</div>
+                <div class="entered-y">Y</div>
+                <div class="entered-z">Z</div>
+            </div>
+        </div>
+        <div class="word-guess">
+            <div class="word-answer">
+                <div>A N S W E R S</div>
+            </div>
+            <form class="guess-form">
+                <input class="guess-textbox" type="text" id="guess-textbox" maxlength="1" oninput="this.value = this.value.toUpperCase()" name="guess-textbox" placeholder="Enter a letter"><br><br>
+                <input class="guess-submit" type="submit" value="Submit">
+            </form>
+        </div>
+    </div>
+    </div>
+</body>
+</html>
