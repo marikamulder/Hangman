@@ -1490,6 +1490,7 @@ function checkIncomingModuleAPI() {
 }
 
 // Imports from the Wasm binary.
+var _debugTest = Module['_debugTest'] = makeInvalidEarlyAccess('_debugTest');
 var _getAnswer = Module['_getAnswer'] = makeInvalidEarlyAccess('_getAnswer');
 var _getGuess = Module['_getGuess'] = makeInvalidEarlyAccess('_getGuess');
 var _checkAnswer = Module['_checkAnswer'] = makeInvalidEarlyAccess('_checkAnswer');
@@ -1511,6 +1512,7 @@ var __indirect_function_table = makeInvalidEarlyAccess('__indirect_function_tabl
 var wasmMemory = makeInvalidEarlyAccess('wasmMemory');
 
 function assignWasmExports(wasmExports) {
+  assert(typeof wasmExports['debugTest'] !== 'undefined', 'missing Wasm export: debugTest');
   assert(typeof wasmExports['getAnswer'] !== 'undefined', 'missing Wasm export: getAnswer');
   assert(typeof wasmExports['getGuess'] !== 'undefined', 'missing Wasm export: getGuess');
   assert(typeof wasmExports['checkAnswer'] !== 'undefined', 'missing Wasm export: checkAnswer');
@@ -1529,6 +1531,7 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['emscripten_stack_get_current'] !== 'undefined', 'missing Wasm export: emscripten_stack_get_current');
   assert(typeof wasmExports['memory'] !== 'undefined', 'missing Wasm export: memory');
   assert(typeof wasmExports['__indirect_function_table'] !== 'undefined', 'missing Wasm export: __indirect_function_table');
+  _debugTest = Module['_debugTest'] = createExportWrapper('debugTest', wasmExports['debugTest'], 0);
   _getAnswer = Module['_getAnswer'] = createExportWrapper('getAnswer', wasmExports['getAnswer'], 0);
   _getGuess = Module['_getGuess'] = createExportWrapper('getGuess', wasmExports['getGuess'], 0);
   _checkAnswer = Module['_checkAnswer'] = createExportWrapper('checkAnswer', wasmExports['checkAnswer'], 3);

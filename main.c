@@ -17,6 +17,8 @@ EMSCRIPTEN_KEEPALIVE int noMoreGuesses();
 EMSCRIPTEN_KEEPALIVE void win();
 EMSCRIPTEN_KEEPALIVE void lose();
 
+
+EMSCRIPTEN_KEEPALIVE
 int debugTest(){
     return 20;
 }
