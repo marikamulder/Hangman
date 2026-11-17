@@ -791,47 +791,6 @@ async function createWasm() {
       }
     };
 
-  var runtimeKeepaliveCounter = 0;
-  var keepRuntimeAlive = () => noExitRuntime || runtimeKeepaliveCounter > 0;
-  var _proc_exit = (code) => {
-      EXITSTATUS = code;
-      if (!keepRuntimeAlive()) {
-        Module['onExit']?.(code);
-        ABORT = true;
-      }
-      quit_(code, new ExitStatus(code));
-    };
-  /** @param {boolean|number=} implicit */
-  var exitJS = (status, implicit) => {
-      EXITSTATUS = status;
-  
-      checkUnflushedContent();
-  
-      // if exit() was called explicitly, warn the user if the runtime isn't actually being shut down
-      if (keepRuntimeAlive() && !implicit) {
-        var msg = `program exited (with status: ${status}), but keepRuntimeAlive() is set (counter=${runtimeKeepaliveCounter}) due to an async operation, so halting execution but not exiting the runtime or preventing further async execution (you can use emscripten_force_exit, if you want to force a true shutdown)`;
-        err(msg);
-      }
-  
-      _proc_exit(status);
-    };
-  var handleException = (e) => {
-      // Certain exception types we do not treat as errors since they are used for
-      // internal control flow.
-      // 1. ExitStatus, which is thrown by exit()
-      // 2. "unwind", which is thrown by emscripten_unwind_to_js_event_loop() and others
-      //    that wish to return to JS event loop.
-      if (e instanceof ExitStatus || e == 'unwind') {
-        return EXITSTATUS;
-      }
-      checkStackCookie();
-      if (e instanceof WebAssembly.RuntimeError) {
-        if (_emscripten_stack_get_current() <= 0) {
-          err('Stack overflow detected.  You can try increasing -sSTACK_SIZE (currently set to 65536)');
-        }
-      }
-      quit_(1, e);
-    };
   /** @type {!Uint8Array} */
   var HEAPU8;
   var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
@@ -1135,6 +1094,7 @@ Module['FS_createPreloadedFile'] = FS.createPreloadedFile;
   'setTempRet0',
   'createNamedFunction',
   'zeroMemory',
+  'exitJS',
   'getHeapMax',
   'abortOnCannotGrowMemory',
   'growMemory',
@@ -1153,6 +1113,8 @@ Module['FS_createPreloadedFile'] = FS.createPreloadedFile;
   'getDynCaller',
   'dynCall',
   'getWasmTableEntry',
+  'handleException',
+  'keepRuntimeAlive',
   'runtimeKeepalivePush',
   'runtimeKeepalivePop',
   'callUserCallback',
@@ -1326,7 +1288,6 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'stackRestore',
   'stackAlloc',
   'ptrToString',
-  'exitJS',
   'ENV',
   'ERRNO_CODES',
   'DNS',
@@ -1334,8 +1295,6 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'timers',
   'warnOnce',
   'readEmAsmArgsArray',
-  'handleException',
-  'keepRuntimeAlive',
   'wasmTable',
   'wasmMemory',
   'noExitRuntime',
@@ -1531,7 +1490,13 @@ function checkIncomingModuleAPI() {
 }
 
 // Imports from the Wasm binary.
-var _main = Module['_main'] = makeInvalidEarlyAccess('_main');
+var _getAnswer = Module['_getAnswer'] = makeInvalidEarlyAccess('_getAnswer');
+var _getGuess = Module['_getGuess'] = makeInvalidEarlyAccess('_getGuess');
+var _checkAnswer = Module['_checkAnswer'] = makeInvalidEarlyAccess('_checkAnswer');
+var _answerRevealed = Module['_answerRevealed'] = makeInvalidEarlyAccess('_answerRevealed');
+var _noMoreGuesses = Module['_noMoreGuesses'] = makeInvalidEarlyAccess('_noMoreGuesses');
+var _win = Module['_win'] = makeInvalidEarlyAccess('_win');
+var _lose = Module['_lose'] = makeInvalidEarlyAccess('_lose');
 var _fflush = makeInvalidEarlyAccess('_fflush');
 var _setThrew = makeInvalidEarlyAccess('_setThrew');
 var _emscripten_stack_init = makeInvalidEarlyAccess('_emscripten_stack_init');
@@ -1546,7 +1511,13 @@ var __indirect_function_table = makeInvalidEarlyAccess('__indirect_function_tabl
 var wasmMemory = makeInvalidEarlyAccess('wasmMemory');
 
 function assignWasmExports(wasmExports) {
-  assert(typeof wasmExports['main'] !== 'undefined', 'missing Wasm export: main');
+  assert(typeof wasmExports['getAnswer'] !== 'undefined', 'missing Wasm export: getAnswer');
+  assert(typeof wasmExports['getGuess'] !== 'undefined', 'missing Wasm export: getGuess');
+  assert(typeof wasmExports['checkAnswer'] !== 'undefined', 'missing Wasm export: checkAnswer');
+  assert(typeof wasmExports['answerRevealed'] !== 'undefined', 'missing Wasm export: answerRevealed');
+  assert(typeof wasmExports['noMoreGuesses'] !== 'undefined', 'missing Wasm export: noMoreGuesses');
+  assert(typeof wasmExports['win'] !== 'undefined', 'missing Wasm export: win');
+  assert(typeof wasmExports['lose'] !== 'undefined', 'missing Wasm export: lose');
   assert(typeof wasmExports['fflush'] !== 'undefined', 'missing Wasm export: fflush');
   assert(typeof wasmExports['setThrew'] !== 'undefined', 'missing Wasm export: setThrew');
   assert(typeof wasmExports['emscripten_stack_init'] !== 'undefined', 'missing Wasm export: emscripten_stack_init');
@@ -1558,7 +1529,13 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['emscripten_stack_get_current'] !== 'undefined', 'missing Wasm export: emscripten_stack_get_current');
   assert(typeof wasmExports['memory'] !== 'undefined', 'missing Wasm export: memory');
   assert(typeof wasmExports['__indirect_function_table'] !== 'undefined', 'missing Wasm export: __indirect_function_table');
-  _main = Module['_main'] = createExportWrapper('main', wasmExports['main'], 2);
+  _getAnswer = Module['_getAnswer'] = createExportWrapper('getAnswer', wasmExports['getAnswer'], 0);
+  _getGuess = Module['_getGuess'] = createExportWrapper('getGuess', wasmExports['getGuess'], 0);
+  _checkAnswer = Module['_checkAnswer'] = createExportWrapper('checkAnswer', wasmExports['checkAnswer'], 3);
+  _answerRevealed = Module['_answerRevealed'] = createExportWrapper('answerRevealed', wasmExports['answerRevealed'], 0);
+  _noMoreGuesses = Module['_noMoreGuesses'] = createExportWrapper('noMoreGuesses', wasmExports['noMoreGuesses'], 0);
+  _win = Module['_win'] = createExportWrapper('win', wasmExports['win'], 0);
+  _lose = Module['_lose'] = createExportWrapper('lose', wasmExports['lose'], 0);
   _fflush = createExportWrapper('fflush', wasmExports['fflush'], 1);
   _setThrew = createExportWrapper('setThrew', wasmExports['setThrew'], 2);
   _emscripten_stack_init = wasmExports['emscripten_stack_init'];
@@ -1581,26 +1558,6 @@ var wasmImports = {
 // === Auto-generated postamble setup entry stuff ===
 
 var calledRun;
-
-function callMain() {
-  assert(typeof onPreRuns === 'undefined' || onPreRuns.length == 0, 'cannot call main when preRun functions remain to be called');
-
-  var entryFunction = _main;
-
-  var argc = 0;
-  var argv = 0;
-
-  try {
-
-    var ret = entryFunction(argc, argv);
-
-    // if we're not running an evented main loop, it's time to exit
-    exitJS(ret, /* implicit = */ true);
-    return ret;
-  } catch (e) {
-    return handleException(e);
-  }
-}
 
 function stackCheckInit() {
   // This is normally called automatically during __wasm_call_ctors but need to
@@ -1632,13 +1589,10 @@ async function run() {
 
   initRuntime();
 
-  // No ATMAINS hooks
-
   Module['onRuntimeInitialized']?.();
   consumedModuleProp('onRuntimeInitialized');
 
-  var noInitialRun = Module['noInitialRun'] || false;
-  if (!noInitialRun) callMain();
+  assert(!Module['_main'], 'compiled without a main, but one is present. if you added it from JS, use Module["onRuntimeInitialized"]');
 
   postRun();
 }
