@@ -26,20 +26,21 @@ int debugTest(){
 
 
 // main
-/*
 int main(){
 
     int playing = true;
 
     // get answer
-    char* answer = getAnswer();
+    //char* answer = getAnswer(); // TODO -- implement getAnswer
+    char answer[] = "answer";
+
     char prevGuesses[MAX_LETTERS];
 
     int answerLength = 0; // if 0, error case
 
     // dynamically check the length of the string
     for (int i = 0; i < MAX_LENGTH; i++){
-        if (answer[i] == NULL){ // end of string
+        if (answer[i] == '\0'){ // end of string
             answerLength = i;
             break;
         }
@@ -50,7 +51,7 @@ int main(){
 
         // get input
         char guess = getGuess();
-        if (guess == NULL){ 
+        if (guess == '\0'){ 
             // error, try again
             continue;
         }
@@ -61,7 +62,7 @@ int main(){
         /* IF guess IN answer, reveal letters
          * ELSE, increment body hanged
          * FINALLY, cross out/list guessed letters
-         *
+         */
 
         // if all letters in answer revealed, player wins
         if (answerRevealed()){
@@ -76,16 +77,18 @@ int main(){
 
     return 0;
 } 
-*/
+
 
 // NOTE:  LATER FUNCTIONS MUST BE DECLARED AS THEY WERE USED IN MAIN
 
+// TODO -- implement later
+/*
 char* getAnswer(){
     // get the answer
     char answer[MAX_LENGTH]; // TODO: grab the answer
 
     return answer;
-}
+}*/
 
 char getGuess(){
     // get the guess
