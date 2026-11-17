@@ -54,5 +54,31 @@
         </div>
     </div>
     </div>
+
+
+    <script>
+        function run_wasm() {
+            var result = Module.ccall(
+                "debugTest",
+                "number",
+                null,
+                null
+            );
+            console.log(result);
+        }
+
+        document.querySelector(".guess-form").addEventListener("submit", function(event) {
+            // 1. Stop the browser from reloading the page
+            event.preventDefault();
+
+            // 2. Grab the input element and its value
+            const inputBox = document.getElementById("guess-textbox");
+            const guessedLetter = inputBox.value;
+
+            // 3. Run wasm (passing the letter eventually)
+            run_wasm();
+        });
+    </script>
+
 </body>
 </html>
