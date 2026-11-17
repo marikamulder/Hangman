@@ -1,32 +1,22 @@
 // all necessary includes
-#include <emscripten.h> // 
+#include <emscripten.h>
+
+
+// declare all used functions
+char* getAnswer();
+char getGuess();
+int checkAnswer(char, char[], int);
+int answerRevealed();
+int noMoreGuesses();
+void win();
+void lose();
 
 
 // defines:
 #define MAX_LENGTH 100 // as of yet does not allow for 100+ letter words
 #define MAX_LETTERS 26 // max size prevGuesses can be (assumes english)
 
-
-// declare all used functions
-// EMSCRIPTEN_KEEPALIVE -- force all function names to be persistant across compiling
-EMSCRIPTEN_KEEPALIVE char* getAnswer();
-EMSCRIPTEN_KEEPALIVE char getGuess();
-EMSCRIPTEN_KEEPALIVE int checkAnswer(char, char[], int);
-EMSCRIPTEN_KEEPALIVE int answerRevealed();
-EMSCRIPTEN_KEEPALIVE int noMoreGuesses();
-EMSCRIPTEN_KEEPALIVE void win();
-EMSCRIPTEN_KEEPALIVE void lose();
-
-
-EMSCRIPTEN_KEEPALIVE
-int debugTest(){
-    return 20;
-}
-
-
-
 // main
-/*
 int main(){
 
     int playing = true;
@@ -61,7 +51,7 @@ int main(){
         /* IF guess IN answer, reveal letters
          * ELSE, increment body hanged
          * FINALLY, cross out/list guessed letters
-         *
+         */
 
         // if all letters in answer revealed, player wins
         if (answerRevealed()){
@@ -75,8 +65,7 @@ int main(){
     }
 
     return 0;
-} 
-*/
+}
 
 // NOTE:  LATER FUNCTIONS MUST BE DECLARED AS THEY WERE USED IN MAIN
 
